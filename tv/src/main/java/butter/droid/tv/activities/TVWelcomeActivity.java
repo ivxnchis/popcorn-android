@@ -18,6 +18,7 @@
 package butter.droid.tv.activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -27,9 +28,24 @@ import butter.droid.tv.activities.base.TVBaseActivity;
 
 public class TVWelcomeActivity extends TVBaseActivity {
 
+	public static final String EXTRA_LINK = "link";
+
 	public static Intent startActivity(Activity activity) {
 		Intent intent = new Intent(activity, TVWelcomeActivity.class);
 		activity.startActivity(intent);
+		return intent;
+	}
+
+	/**
+	 * @param link opened once the terms are accepted
+	 */
+	public static Intent startActivity(Context context, String link) {
+		Intent intent = new Intent(context, TVWelcomeActivity.class);
+		intent.putExtra(EXTRA_LINK, link);
+		if (!(context instanceof Activity)) {
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		}
+		context.startActivity(intent);
 		return intent;
 	}
 

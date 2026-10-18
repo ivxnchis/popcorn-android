@@ -49,6 +49,7 @@
         android:banner="@drawable/banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.Butter.TV" >
 
         <activity
@@ -150,6 +151,15 @@
 
                 <data android:scheme="magnet" />
             </intent-filter>
+            <!-- shared from another app, e.g. a link from a browser's share menu -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/x-bittorrent" />
+            </intent-filter>
         </activity>
 
         <!-- Activities -->
@@ -163,6 +173,9 @@
         <activity android:name=".activities.TVSearchActivity" />
         <activity
             android:name=".activities.TVPreferencesActivity"
+            android:theme="@style/Theme.Butter.TV.GuidedStep" />
+        <activity
+            android:name=".activities.TVOpenLinkActivity"
             android:theme="@style/Theme.Butter.TV.GuidedStep" />
         <activity
             android:launchMode="singleTask"

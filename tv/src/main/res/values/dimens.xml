@@ -41,4 +41,6 @@
     <dimen name="leanback_track_row_horizontal_margin">132.0dip</dimen>
     <dimen name="leanback_track_row_horizontal_padding">32.0dip</dimen>
 
+    <dimen name="open_link_qr_size">160dp</dimen>
+
 </resources>

@@ -58,6 +58,7 @@ import butter.droid.tv.R;
 import butter.droid.tv.TVButterApplication;
 import butter.droid.tv.activities.TVMediaDetailActivity;
 import butter.droid.tv.activities.TVMediaGridActivity;
+import butter.droid.tv.activities.TVOpenLinkActivity;
 import butter.droid.tv.activities.TVPreferencesActivity;
 import butter.droid.tv.activities.TVSearchActivity;
 import butter.droid.tv.activities.TVVideoPlayerActivity;
@@ -300,6 +301,7 @@ public class TVOverviewFragment extends BrowseFragment implements OnItemViewClic
         HeaderItem gridHeader = new HeaderItem(0, getString(R.string.more));
         MorePresenter gridPresenter = new MorePresenter(getActivity());
         ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(gridPresenter);
+        gridRowAdapter.add(new MorePresenter.MoreItem(R.id.more_item_open_link, getString(R.string.open_link), R.drawable.ic_open_link, null));
         if (BuildConfig.DEBUG) {
             gridRowAdapter.add(new MorePresenter.MoreItem(R.id.more_player_tests, getString(R.string.tests), R.drawable.more_player_tests, null));
         }
@@ -332,6 +334,9 @@ public class TVOverviewFragment extends BrowseFragment implements OnItemViewClic
                 break;
             case R.id.more_item_settings:
                 TVPreferencesActivity.startActivity(getActivity());
+                break;
+            case R.id.more_item_open_link:
+                TVOpenLinkActivity.startActivity(getActivity());
                 break;
             case R.id.movie_filter_a_to_z:
             case R.id.movie_filter_trending:

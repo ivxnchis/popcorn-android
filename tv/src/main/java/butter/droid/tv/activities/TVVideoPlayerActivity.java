@@ -46,6 +46,7 @@ public class TVVideoPlayerActivity extends TVBaseActivity implements TVVideoPlay
     private StreamInfo mStreamInfo;
     private boolean mIsBackPressed = false;
     private boolean mCurrentStreamStopped = false;
+    private int mStreamRequest = -1;
 
     public static Intent startActivity(Context context, StreamInfo info) {
         return startActivity(context, info, 0);
@@ -120,11 +121,19 @@ public class TVVideoPlayerActivity extends TVBaseActivity implements TVVideoPlay
 
     @Override
     protected void onDestroy() {
-        if (!mCurrentStreamStopped) {
+        if (!mCurrentStreamStopped && mService != null && ownsStream()) {
             mService.stopStreaming();
             mCurrentStreamStopped = true;
         }
         super.onDestroy();
+    }
+
+    /**
+     * A link opened from another app or device replaces the player, and this may only be destroyed once the new
+     * stream has started. That one must keep running.
+     */
+    private boolean ownsStream() {
+        return mStreamRequest == -1 || mStreamRequest == mService.getStreamRequest();
     }
 
     @Override
@@ -158,6 +167,9 @@ public class TVVideoPlayerActivity extends TVBaseActivity implements TVVideoPlay
     @Override
     public void onTorrentServiceConnected() {
         mService.addListener(mPlayerFragment);
+        if (mStreamRequest == -1) {
+            mStreamRequest = mService.getStreamRequest();
+        }
     }
 
     @Override

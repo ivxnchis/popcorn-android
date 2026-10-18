@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Butter.
+  ~
+  ~ Butter is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ Butter is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with Butter. If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+
+<!-- Like the default guidance, with room for the QR code and address of the page to send links from -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/guidance_container"
+        style="?attr/guidanceContainerStyle"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/guidance_breadcrumb"
+            style="?attr/guidanceBreadcrumbStyle" />
+
+        <TextView
+            android:id="@+id/guidance_title"
+            style="?attr/guidanceTitleStyle" />
+
+        <TextView
+            android:id="@+id/guidance_description"
+            style="?attr/guidanceDescriptionStyle"
+            android:layout_marginTop="8dp" />
+
+        <ImageView
+            android:id="@+id/guidance_icon"
+            android:layout_width="@dimen/open_link_qr_size"
+            android:layout_height="@dimen/open_link_qr_size"
+            android:layout_marginTop="16dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/guidance_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#FFF1F1F1"
+            android:textSize="18sp" />
+
+    </LinearLayout>
+
+</FrameLayout>

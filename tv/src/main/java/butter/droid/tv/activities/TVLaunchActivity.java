@@ -27,13 +27,10 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 import butter.droid.base.content.preferences.Prefs;
-import butter.droid.base.torrent.StreamInfo;
 import butter.droid.base.utils.PrefUtils;
 import butter.droid.tv.service.RecommendationService;
+import butter.droid.tv.utils.TorrentLinkOpener;
 
 public class TVLaunchActivity extends Activity {
 
@@ -55,25 +52,33 @@ public class TVLaunchActivity extends Activity {
 	}
 
 	private void proceedCreate() {
+		//opened with a .torrent file, e.g. from a browser's downloads
+		Uri torrentFile = TorrentLinkOpener.getTorrentFileUri(getIntent());
+		if (torrentFile != null) {
+			//we may only read the file until this activity finishes
+			TorrentLinkOpener.openTorrentFile(this, torrentFile, new Runnable() {
+				@Override
+				public void run() {
+					finish();
+				}
+			});
+			return;
+		}
+
+		//opened with a magnet link, a link to a .torrent file or a shared text containing one
+		String link = TorrentLinkOpener.getLink(getIntent());
+		if (link != null) {
+			TorrentLinkOpener.open(this, link);
+			finish();
+			return;
+		}
+
 		Boolean firstRun = PrefUtils.get(this, Prefs.FIRST_RUN, true);
 
 		if (firstRun) {
 			//run the welcome wizard
 			TVWelcomeActivity.startActivity(this);
 		} else {
-			String action = getIntent().getAction();
-			Uri data = getIntent().getData();
-			if (action != null && action.equals(Intent.ACTION_VIEW) && data != null) {
-				String streamUrl = data.toString();
-				try {
-					streamUrl = URLDecoder.decode(streamUrl, "utf-8");
-					TVStreamLoadingActivity.startActivity(this, new StreamInfo(streamUrl));
-					finish();
-					return;
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
 			TVMainActivity.startActivity(this);
 		}
 	}

@@ -29,6 +29,8 @@ import butter.droid.base.content.preferences.Prefs;
 import butter.droid.base.utils.PrefUtils;
 import butter.droid.tv.R;
 import butter.droid.tv.activities.TVMainActivity;
+import butter.droid.tv.activities.TVWelcomeActivity;
+import butter.droid.tv.utils.TorrentLinkOpener;
 
 public class TVWelcomeFragment extends GuidedStepFragment {
 
@@ -58,9 +60,15 @@ public class TVWelcomeFragment extends GuidedStepFragment {
             case R.id.action_accept:
                 //set first run flag to false, don't show welcome again
                 PrefUtils.save(getActivity(), Prefs.FIRST_RUN, false);
-                //start main activity
 
-                TVMainActivity.startActivity(getActivity());
+                String link = getActivity().getIntent().getStringExtra(TVWelcomeActivity.EXTRA_LINK);
+                if (link != null) {
+                    //the app was opened with a link
+                    TorrentLinkOpener.open(getActivity(), link);
+                } else {
+                    //start main activity
+                    TVMainActivity.startActivity(getActivity());
+                }
                 getActivity().finish();
                 return;
             case R.id.action_decline:

@@ -70,6 +70,7 @@ public class TorrentService extends Service implements TorrentServerListener {
     private StreamStatus mStreamStatus;
 
     private boolean mInForeground = false, mIsReady = false, mStopped = false;
+    private int mStreamRequest = 0;
 
     private IBinder mBinder = new ServiceBinder();
     private List<TorrentServerListener> mListener = new ArrayList<>();
@@ -237,6 +238,8 @@ public class TorrentService extends Service implements TorrentServerListener {
     public void streamTorrent(@NonNull final String torrentUrl, @NonNull final String torrentFile) {
         Timber.d("streamTorrent");
         mStopped = false;
+        // whoever asked last owns the stream, even when it was already running
+        mStreamRequest++;
 
         if (mTorrentStreamServer.isStreaming()) return;
 
@@ -286,6 +289,14 @@ public class TorrentService extends Service implements TorrentServerListener {
 
     public boolean isReady() {
         return mIsReady;
+    }
+
+    /**
+     * Changes every time a stream is requested. A screen that remembers it can tell whether the current stream was
+     * requested for another screen since, which it shouldn't stop.
+     */
+    public int getStreamRequest() {
+        return mStreamRequest;
     }
 
     public boolean checkStopped() {
