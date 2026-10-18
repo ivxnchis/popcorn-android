@@ -32,6 +32,7 @@ import butter.droid.tv.activities.TVVideoPlayerActivity;
 import butter.droid.tv.activities.TVWelcomeActivity;
 import butter.droid.tv.fragments.TVMediaGridFragment;
 import butter.droid.tv.fragments.TVMovieDetailsFragment;
+import butter.droid.tv.fragments.TVOpenSubtitlesFragment;
 import butter.droid.tv.fragments.TVOverviewFragment;
 import butter.droid.tv.fragments.TVPreferencesFragment;
 import butter.droid.tv.fragments.TVSearchFragment;
@@ -85,6 +86,8 @@ public interface ApplicationComponent {
     void inject(TVStreamLoadingFragment fragment);
 
     void inject(TVPreferencesFragment fragment);
+
+    void inject(TVOpenSubtitlesFragment fragment);
 
     void inject(TVSearchFragment fragment);
 

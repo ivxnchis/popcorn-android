@@ -40,6 +40,25 @@
     <string name="invalid_link">That doesn\'t look like a magnet link</string>
     <string name="torrent_file_error">Unable to open the .torrent file</string>
 
+    <!-- OpenSubtitles account, in the preferences -->
+    <string name="opensubtitles_account">OpenSubtitles account</string>
+    <string name="opensubtitles_account_description">Sign in to get subtitles with your OpenSubtitles account and its download limits, instead of anonymously.\n\nYou can create an account for free at opensubtitles.org.</string>
+    <string name="opensubtitles_not_signed_in">Not signed in</string>
+    <string name="opensubtitles_signed_in_as">Signed in as %1$s</string>
+    <string name="opensubtitles_username">Username</string>
+    <string name="opensubtitles_password">Password</string>
+    <string name="opensubtitles_not_set">Not set</string>
+    <string name="opensubtitles_password_saved">••••••••</string>
+    <string name="opensubtitles_sign_in">Sign in</string>
+    <string name="opensubtitles_sign_out">Sign out</string>
+    <string name="opensubtitles_sign_out_description">Get subtitles anonymously again</string>
+    <string name="opensubtitles_enter_account">Enter your username and password first</string>
+    <string name="opensubtitles_signing_in">Signing in…</string>
+    <string name="opensubtitles_signed_in">Signed in to OpenSubtitles</string>
+    <string name="opensubtitles_wrong_account">Wrong username or password</string>
+    <string name="opensubtitles_unreachable">Couldn\'t reach OpenSubtitles, please try again later</string>
+    <string name="opensubtitles_signed_out">Signed out of OpenSubtitles</string>
+
     <!-- Page served to phones and computers, see RemoteLinkServer -->
     <string name="remote_page_title">Send to %1$s</string>
     <string name="remote_page_intro">Paste a magnet link or choose a .torrent file. It starts playing on your TV right away.</string>

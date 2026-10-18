@@ -23,6 +23,8 @@ public class Prefs {
     public static final String SUBTITLE_STROKE_WIDTH = "subtitle_stroke_width";
     public static final String SUBTITLE_STROKE_COLOR = "subtitle_stroke_color";
     public static final String SUBTITLE_DEFAULT = "subtitle_default_language";
+    public static final String OPENSUBTITLES_USERNAME = "opensubtitles_username";
+    public static final String OPENSUBTITLES_PASSWORD = "opensubtitles_password";
     public static final String STORAGE_LOCATION = "storage_location";
     public static final String REMOVE_CACHE = "remove_cache";
     public static final String HW_ACCELERATION = "hw_acceleration";
