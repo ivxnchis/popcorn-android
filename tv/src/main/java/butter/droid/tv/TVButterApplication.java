@@ -18,6 +18,7 @@
 package butter.droid.tv;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.sjl.foreground.Foreground;
 
@@ -25,6 +26,8 @@ import butter.droid.base.BaseApplicationModule;
 import butter.droid.base.ButterApplication;
 import butter.droid.base.utils.VersionUtils;
 import butter.droid.tv.remote.RemoteLinkManager;
+import butter.droid.tv.utils.AppLogs;
+import timber.log.Timber;
 
 public class TVButterApplication extends ButterApplication {
 
@@ -55,6 +58,18 @@ public class TVButterApplication extends ButterApplication {
 
     @Override
     public void onCreate() {
+        // first, so crashes while starting are kept too
+        AppLogs.install(this);
+        if (!BuildConfig.DEBUG) {
+            // debug builds log everything already, see ButterApplication
+            Timber.plant(new Timber.DebugTree() {
+                @Override
+                protected boolean isLoggable(int priority) {
+                    return priority >= Log.WARN;
+                }
+            });
+        }
+
         component = DaggerApplicationComponent.builder()
                 .baseApplicationModule(new BaseApplicationModule(this))
                 .build();

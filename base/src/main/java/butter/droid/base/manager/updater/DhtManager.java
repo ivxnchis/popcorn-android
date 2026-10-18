@@ -40,21 +40,28 @@ public class DhtManager implements Runnable {
 
     public void updateSettings()
     {
-        int updated = PrefUtils.get(mContext, Prefs.DHT_UPDATED, 0);
+        long updated = PrefUtils.get(mContext, Prefs.DHT_UPDATED, 0L);
         if (updated + UPDATE_INTERVAL > System.currentTimeMillis() / 1000) {
             return;
         }
 
+        final SessionManager sm;
         try {
-            SessionManager sm = TorrentStream.getInstance().getSessionManager();
-            this.updateFromDHT(sm);
-            return;
+            sm = TorrentStream.getInstance().getSessionManager();
         } catch (NotInitializedException e) {
             Log.d("DHT", "NotInitializedException");
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(this, 5000);
+            return;
         }
 
-        final Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(this, 5000);
+        // asking the DHT waits for an answer for up to 20 seconds, which froze the app on the main thread
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                updateFromDHT(sm);
+            }
+        }, "DHT update").start();
     }
 
     @Override
@@ -66,14 +73,21 @@ public class DhtManager implements Runnable {
         Log.d("DHT", "DHT contains " + sm.stats().dhtNodes() + " nodes");
         String dhtPublicKey = mContext.getResources().getString(R.string.dht_public_key);
         SessionManager.MutableItem data = sm.dhtGetItem(Hex.decode(dhtPublicKey), Hex.decode(""), 20);
-        int seq = PrefUtils.get(mContext, Prefs.DHT_SEQ, 0);
+        if (data == null || data.item == null) {
+            // no answer in time, the next start asks again
+            Log.d("DHT", "No answer from the DHT");
+            return;
+        }
+
+        // checked, so the next check is in a week, whether or not anything changed
+        PrefUtils.save(mContext, Prefs.DHT_UPDATED, System.currentTimeMillis() / 1000);
+        long seq = PrefUtils.get(mContext, Prefs.DHT_SEQ, 0L);
         if (data.seq <= seq) {
             return;
         }
         Log.d("DHT", "DHT updated " + data.seq);
         PrefUtils.save(mContext, Prefs.DHT_DATA, data.item.string());
         PrefUtils.save(mContext, Prefs.DHT_SEQ, data.seq);
-        PrefUtils.save(mContext, Prefs.DHT_UPDATED, System.currentTimeMillis() / 1000);
     }
 
     public String[] servers()
