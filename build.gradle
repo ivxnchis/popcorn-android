@@ -5,6 +5,8 @@ buildscript {
         mavenCentral()
         jcenter()
         google()
+        // the versions plugin was only on JCenter besides here
+        gradlePluginPortal()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.5.1'
