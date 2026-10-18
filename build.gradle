@@ -2,8 +2,6 @@
 
 buildscript {
     repositories {
-        //temporary to solve hugo error
-        maven { url 'https://guardian.github.com/maven/repo-releases' }
         mavenCentral()
         jcenter()
         google()
@@ -37,7 +35,6 @@ ext {
 
 allprojects {
     repositories {
-        maven { url 'https://guardian.github.com/maven/repo-releases' }
         maven { url 'https://maven.google.com' }
         jcenter()
         mavenCentral()
