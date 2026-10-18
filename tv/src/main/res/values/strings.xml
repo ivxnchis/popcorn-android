@@ -73,5 +73,7 @@
     <string name="remote_not_torrent">That file isn\'t a .torrent file.</string>
     <string name="remote_too_large">That file is too large to be a .torrent file.</string>
     <string name="remote_failed">Something went wrong, please try again.</string>
+    <string name="remote_page_logs">App logs, for troubleshooting</string>
+    <string name="remote_page_logs_download">Download</string>
 
 </resources>

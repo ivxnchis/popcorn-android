@@ -38,18 +38,27 @@ public class RemoteLinkServer extends NanoHTTPD {
 
     static final String PATH_PAGE = "/";
     static final String PATH_SEND = "/send";
+    static final String PATH_LOGS = "/logs";
     static final String FIELD_LINK = "link";
     static final String FIELD_TORRENT = "torrent";
 
     private static final long MAX_REQUEST_SIZE = TorrentFiles.MAX_SIZE + 64 * 1024;
     private static final String MIME_JSON = "application/json";
     private static final String MIME_HTML_UTF8 = MIME_HTML + "; charset=utf-8";
+    private static final String MIME_PLAINTEXT_UTF8 = MIME_PLAINTEXT + "; charset=utf-8";
 
     public interface Listener {
         /**
          * Called on a server thread with a magnet, http(s) or file link.
          */
         void onLinkReceived(String link);
+    }
+
+    public interface Logs {
+        /**
+         * Called on a server thread, to troubleshoot the app from another device.
+         */
+        String collect();
     }
 
     /**
@@ -75,17 +84,19 @@ public class RemoteLinkServer extends NanoHTTPD {
     private final Messages mMessages;
     private final File mTorrentDirectory;
     private final Listener mListener;
+    private final Logs mLogs;
 
     /**
      * @param page             html of the page, with {{status}} and {{status_class}} where a message goes
      * @param torrentDirectory where uploaded .torrent files are kept
      */
-    public RemoteLinkServer(int port, String page, Messages messages, File torrentDirectory, Listener listener) {
+    public RemoteLinkServer(int port, String page, Messages messages, File torrentDirectory, Listener listener, Logs logs) {
         super(port);
         mPage = page;
         mMessages = messages;
         mTorrentDirectory = torrentDirectory;
         mListener = listener;
+        mLogs = logs;
     }
 
     @Override
@@ -99,7 +110,19 @@ public class RemoteLinkServer extends NanoHTTPD {
         if (PATH_SEND.equals(path) && Method.POST.equals(method)) {
             return send(session);
         }
+        if (PATH_LOGS.equals(path) && Method.GET.equals(method)) {
+            return logs(session);
+        }
         return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not found");
+    }
+
+    private Response logs(IHTTPSession session) {
+        Response response = newFixedLengthResponse(Response.Status.OK, MIME_PLAINTEXT_UTF8, mLogs.collect());
+        response.addHeader("Cache-Control", "no-store");
+        if (session.getParameters().containsKey("download")) {
+            response.addHeader("Content-Disposition", "attachment; filename=\"popcorn-time-tv-logs.txt\"");
+        }
+        return response;
     }
 
     private Response send(IHTTPSession session) {

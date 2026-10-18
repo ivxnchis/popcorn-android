@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 
 import butter.droid.base.utils.LocaleUtils;
 import butter.droid.tv.R;
+import butter.droid.tv.utils.AppLogs;
 import butter.droid.tv.utils.TorrentLinkOpener;
 import timber.log.Timber;
 
@@ -80,6 +81,13 @@ public class RemoteLinkManager {
         }
     };
 
+    private final RemoteLinkServer.Logs mLogs = new RemoteLinkServer.Logs() {
+        @Override
+        public String collect() {
+            return AppLogs.collect(mContext);
+        }
+    };
+
     public RemoteLinkManager(Context context) {
         mContext = context.getApplicationContext();
     }
@@ -110,7 +118,7 @@ public class RemoteLinkManager {
                 // the address is easier to remember when it stays the same, so only move on when the port is taken
                 for (int port = DEFAULT_PORT; port < DEFAULT_PORT + PORT_ATTEMPTS; port++) {
                     RemoteLinkServer server = new RemoteLinkServer(port, page, messages,
-                            TorrentLinkOpener.getTorrentDirectory(mContext), mLinkListener);
+                            TorrentLinkOpener.getTorrentDirectory(mContext), mLinkListener, mLogs);
                     try {
                         server.start(SOCKET_READ_TIMEOUT, true);
                     } catch (IOException e) {
@@ -190,6 +198,8 @@ public class RemoteLinkManager {
         texts.put("choose_file", mContext.getString(R.string.remote_page_choose_file));
         texts.put("sending", mContext.getString(R.string.remote_page_sending));
         texts.put("failed", mContext.getString(R.string.remote_failed));
+        texts.put("logs", mContext.getString(R.string.remote_page_logs));
+        texts.put("logs_download", mContext.getString(R.string.remote_page_logs_download));
 
         String page = readAsset(PAGE_ASSET);
         for (Map.Entry<String, String> text : texts.entrySet()) {

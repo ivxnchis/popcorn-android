@@ -71,6 +71,8 @@
   .status { min-height: 24px; margin-top: 24px; font-weight: 500; color: var(--muted); }
   .status.ok { color: var(--ok); }
   .status.error { color: var(--error); }
+  .logs { margin-top: 48px; font-size: 14px; }
+  .logs a { color: var(--muted); }
   body.dragging main { outline: 2px dashed var(--primary); outline-offset: 8px; border-radius: 8px; }
 </style>
 </head>
@@ -96,6 +98,8 @@
   </form>
 
   <div id="status" class="status {{status_class}}" role="status" aria-live="polite">{{status}}</div>
+
+  <p class="logs"><a href="logs">{{logs}}</a> · <a href="logs?download=1">{{logs_download}}</a></p>
 </main>
 <script>
 (function () {
