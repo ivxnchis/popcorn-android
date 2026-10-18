@@ -27,23 +27,27 @@ import butter.droid.base.ButterApplication;
 import butter.droid.base.utils.VersionUtils;
 import butter.droid.tv.remote.RemoteLinkManager;
 import butter.droid.tv.utils.AppLogs;
+import butter.droid.tv.utils.FreezeWatchdog;
 import timber.log.Timber;
 
 public class TVButterApplication extends ButterApplication {
 
     private ApplicationComponent component;
     private RemoteLinkManager remoteLinkManager;
+    private FreezeWatchdog freezeWatchdog;
 
     // Foreground only keeps a weak reference to its listeners
     private final Foreground.Listener foregroundListener = new Foreground.Listener() {
         @Override
         public void onBecameForeground() {
             remoteLinkManager.start();
+            freezeWatchdog.start();
         }
 
         @Override
         public void onBecameBackground() {
             remoteLinkManager.stop();
+            freezeWatchdog.stop();
         }
     };
 
@@ -78,6 +82,8 @@ public class TVButterApplication extends ButterApplication {
 
         // lets phones and computers on the network send links while the app is open
         remoteLinkManager = new RemoteLinkManager(this);
+        // keeps what the app was doing when it froze for the logs, while there's a screen that can freeze
+        freezeWatchdog = new FreezeWatchdog(this);
         Foreground.get(this).addListener(foregroundListener);
     }
 
