@@ -1,1 +1,97 @@
+name: Build
 
+on:
+  push:
+    branches:
+      - development
+      - 'claude/**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tv:
+    name: Android TV APKs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # before switching to Java 8, which sdkmanager doesn't run on. NDK r21 is the last with the toolchains the
+      # Android Gradle plugin 3.5 strips native libraries with, and the plugin uses the newest NDK it finds, so the
+      # ones the runner comes with have to go.
+      - name: Install SDK packages
+        run: |
+          : "${ANDROID_HOME:?}"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-29" "build-tools;28.0.3" "ndk;21.4.7075529" > /dev/null
+          find "$ANDROID_HOME/ndk" -mindepth 1 -maxdepth 1 ! -name 21.4.7075529 -exec sudo rm -rf {} +
+          sudo rm -rf "$ANDROID_HOME/ndk-bundle"
+          ls "$ANDROID_HOME/ndk" "$ANDROID_HOME/ndk/21.4.7075529/toolchains"
+
+      # Gradle 5.6 and the Android Gradle plugin 3.5 predate newer Java versions
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Set up signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.TV_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.TV_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.TV_KEY_PASSWORD }}
+        run: |
+          keystore="$RUNNER_TEMP/release.keystore"
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          else
+            echo "::warning::No TV_KEYSTORE_BASE64 secret, signing with a key made for this build only. Installing a later build signed with another key means uninstalling this one first."
+            KEY_ALIAS=popcorntime
+            KEY_PASSWORD=$(openssl rand -hex 16)
+            keytool -genkeypair -keystore "$keystore" -alias "$KEY_ALIAS" \
+              -storepass "$KEY_PASSWORD" -keypass "$KEY_PASSWORD" \
+              -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Popcorn Time"
+          fi
+          echo "::add-mask::$KEY_PASSWORD"
+          # read by the signing config in tv/build.gradle, which uses one password for the store and the key
+          echo "S_KEYSTORE=$keystore" >> "$GITHUB_ENV"
+          echo "S_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "S_KEYPASS=$KEY_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Build
+        env:
+          # becomes the version code, which has to go up for an update to install
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          # instead of the much newer NDK the runner comes with
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/21.4.7075529" ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/21.4.7075529"
+          ./gradlew --no-daemon --stacktrace :tv:assembleArmRelease :tv:assembleX86Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: popcorn-time-tv
+          path: tv/build/outputs/apk/*/release/*.apk
+
+      # a new TV version reaching development is released, with the notes in tv/release-notes/<version>.md
+      - name: Publish release
+        if: github.ref == 'refs/heads/development'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -n 's/^ *versionName "\(.*\)"$/\1/p' tv/build.gradle | head -n 1)
+          tag="tv-v$version"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "$tag is already released"
+            exit 0
+          fi
+          notes="tv/release-notes/$version.md"
+          if [ -f "$notes" ]; then
+            notes_option=(--notes-file "$notes")
+          else
+            notes_option=(--generate-notes)
+          fi
+          gh release create "$tag" tv/build/outputs/apk/*/release/*.apk \
+            --target "$GITHUB_SHA" \
+            --title "Popcorn Time TV $version" \
+            "${notes_option[@]}"

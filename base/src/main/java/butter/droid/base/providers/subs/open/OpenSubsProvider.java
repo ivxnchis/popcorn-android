@@ -21,14 +21,19 @@ import android.content.Context;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import butter.droid.base.content.preferences.Prefs;
 import butter.droid.base.providers.media.models.Episode;
 import butter.droid.base.providers.media.models.Movie;
 import butter.droid.base.providers.subs.SubsProvider;
+import butter.droid.base.utils.PrefUtils;
 import de.timroes.axmlrpc.XMLRPCCallback;
 import de.timroes.axmlrpc.XMLRPCClient;
 import de.timroes.axmlrpc.XMLRPCException;
@@ -37,16 +42,80 @@ import okhttp3.OkHttpClient;
 
 public class OpenSubsProvider extends SubsProvider {
 
-    static final String API_URL = "http://api.opensubtitles.org/xml-rpc";
+    // over https, as the login carries the account's password hash
+    static final String API_URL = "https://api.opensubtitles.org/xml-rpc";
     static final String USER_AGENT = "Popcorn Time NodeJS";//"Popcorn Time Android v1";
 
+    private final Context context;
     private final XMLRPCClient client;
 
     private final ArrayList<Long> ongoingCalls = new ArrayList<>();
 
+    public interface LoginCallback {
+        /**
+         * Called on a background thread when the account works.
+         */
+        void onSignedIn();
+
+        /**
+         * Called on a background thread when OpenSubtitles turns the username or password down.
+         */
+        void onWrongCredentials();
+
+        /**
+         * Called on a background thread when OpenSubtitles couldn't be asked.
+         */
+        void onFailure(Exception e);
+    }
+
     public OpenSubsProvider(Context context, OkHttpClient client, ObjectMapper mapper, XMLRPCClient xmlClient) {
         super(context, client, mapper);
+        this.context = context;
         this.client = xmlClient;
+    }
+
+    /**
+     * @return the form OpenSubtitles accepts a password in, and the only one it is stored in
+     */
+    public static String hashPassword(String password) {
+        try {
+            byte[] hash = MessageDigest.getInstance("MD5").digest(password.getBytes("UTF-8"));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hex.append(String.format(Locale.US, "%02x", b & 0xff));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Checks an account with OpenSubtitles without saving it.
+     */
+    public void checkLogin(String username, String passwordHash, final LoginCallback callback) {
+        client.callAsync(new XMLRPCCallback() {
+            @Override
+            public void onResponse(long id, Object result) {
+                if (getToken(result) != null) {
+                    callback.onSignedIn();
+                } else if (getStatus(result).startsWith("401")) {
+                    callback.onWrongCredentials();
+                } else {
+                    callback.onFailure(new XMLRPCException("Login failed: " + getStatus(result)));
+                }
+            }
+
+            @Override
+            public void onError(long id, XMLRPCException error) {
+                callback.onFailure(error);
+            }
+
+            @Override
+            public void onServerError(long id, XMLRPCServerException error) {
+                callback.onFailure(error);
+            }
+        }, "LogIn", username, passwordHash, "en", USER_AGENT);
     }
 
     @Override
@@ -253,12 +322,44 @@ public class OpenSubsProvider extends SubsProvider {
     }
 
     /**
-     * Login to server and get token
+     * Login to server and get token, with the saved account if there is one
      *
      * @param callback XML RPC callback
      */
-    private void login(XMLRPCCallback callback) {
-        long callId = client.callAsync(callback, "LogIn", "", "", "en", USER_AGENT);
+    private void login(final XMLRPCCallback callback) {
+        String username = PrefUtils.get(context, Prefs.OPENSUBTITLES_USERNAME, "");
+        String passwordHash = PrefUtils.get(context, Prefs.OPENSUBTITLES_PASSWORD, "");
+        if (username.isEmpty()) {
+            login(callback, "", "");
+            return;
+        }
+
+        login(new XMLRPCCallback() {
+            @Override
+            public void onResponse(long id, Object result) {
+                removeCall(id);
+                if (getToken(result) != null) {
+                    callback.onResponse(id, result);
+                } else {
+                    // the account stopped working, carry on without it rather than without subtitles
+                    login(callback, "", "");
+                }
+            }
+
+            @Override
+            public void onError(long id, XMLRPCException error) {
+                callback.onError(id, error);
+            }
+
+            @Override
+            public void onServerError(long id, XMLRPCServerException error) {
+                callback.onServerError(id, error);
+            }
+        }, username, passwordHash);
+    }
+
+    private void login(XMLRPCCallback callback, String username, String passwordHash) {
+        long callId = client.callAsync(callback, "LogIn", username, passwordHash, "en", USER_AGENT);
         synchronized (ongoingCalls) {
             ongoingCalls.add(callId);
         }
@@ -294,6 +395,19 @@ public class OpenSubsProvider extends SubsProvider {
         synchronized (ongoingCalls) {
             ongoingCalls.add(callId);
         }
+    }
+
+    private static String getToken(Object result) {
+        if (!(result instanceof Map)) {
+            return null;
+        }
+        Object token = ((Map) result).get("token");
+        return token instanceof String && !((String) token).isEmpty() ? (String) token : null;
+    }
+
+    private static String getStatus(Object result) {
+        Object status = result instanceof Map ? ((Map) result).get("status") : null;
+        return status == null ? "" : status.toString();
     }
 
 }

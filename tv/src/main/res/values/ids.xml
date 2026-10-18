@@ -65,4 +65,9 @@
     <item name="action_paste_link" type="id" />
     <item name="action_torrent_files" type="id" />
     <item name="action_browse_files" type="id" />
+
+    <item name="action_opensubtitles_username" type="id" />
+    <item name="action_opensubtitles_password" type="id" />
+    <item name="action_opensubtitles_sign_in" type="id" />
+    <item name="action_opensubtitles_sign_out" type="id" />
 </resources>

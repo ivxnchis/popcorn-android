@@ -32,6 +32,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butter.droid.base.content.preferences.PrefItem;
+import butter.droid.base.content.preferences.Prefs;
 import butter.droid.base.content.preferences.PreferencesHandler;
 import butter.droid.base.manager.updater.ButterUpdateManager;
 import butter.droid.base.utils.LocaleUtils;
@@ -84,6 +85,7 @@ public class TVPreferencesFragment extends GuidedStepFragment implements Prefere
 
         int index = 0;
         mPrefs = PreferencesHandler.ItemsGenerator.generate(getActivity(), this, butterUpdateManager, true);
+        addOpenSubtitlesAccount(mPrefs);
 
         for(PrefItem item : mPrefs) {
             actions.add(generateAction(index, item));
@@ -101,6 +103,44 @@ public class TVPreferencesFragment extends GuidedStepFragment implements Prefere
         mLastSelectedActionIndex = getSelectedActionPosition();
         mPrefs.get(mLastSelectedActionIndex).onClick();
         setSelectedActionPosition(mLastSelectedActionIndex);
+    }
+
+    /**
+     * Only the TV app can sign in to OpenSubtitles, so it isn't among the preferences shared with the phone app.
+     */
+    private void addOpenSubtitlesAccount(List<PrefItem> prefs) {
+        int position = prefs.size();
+        for (int i = 0; i < prefs.size(); i++) {
+            if (Prefs.SUBTITLE_DEFAULT.equals(prefs.get(i).getPrefKey())) {
+                position = i + 1;
+            }
+        }
+
+        prefs.add(position, PrefItem.newBuilder(getActivity())
+                .setIconResource(R.drawable.ic_prefs_subtitle_lang)
+                .setTitleResource(R.string.opensubtitles_account)
+                .setPreferenceKey(Prefs.OPENSUBTITLES_USERNAME)
+                .setDefaultValue("")
+                .hasNext(true)
+                .setOnClickListener(new PrefItem.OnClickListener() {
+                    @Override
+                    public void onClick(PrefItem item) {
+                        GuidedStepFragment.add(getFragmentManager(), TVOpenSubtitlesFragment.newInstance(new TVOpenSubtitlesFragment.Listener() {
+                            @Override
+                            public void onAccountChanged() {
+                                updateAction(mLastSelectedActionIndex);
+                            }
+                        }));
+                    }
+                })
+                .setSubtitleGenerator(new PrefItem.SubtitleGenerator() {
+                    @Override
+                    public String get(PrefItem item) {
+                        String username = item.getValue().toString();
+                        return username.isEmpty() ? getString(R.string.opensubtitles_not_signed_in) : getString(R.string.opensubtitles_signed_in_as, username);
+                    }
+                })
+                .build());
     }
 
     private GuidedAction generateAction(long id, PrefItem item) {

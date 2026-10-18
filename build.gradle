@@ -2,11 +2,11 @@
 
 buildscript {
     repositories {
-        //temporary to solve hugo error
-        maven { url 'https://guardian.github.com/maven/repo-releases' }
         mavenCentral()
         jcenter()
         google()
+        // the versions plugin was only on JCenter besides here
+        gradlePluginPortal()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.5.1'
@@ -37,7 +37,6 @@ ext {
 
 allprojects {
     repositories {
-        maven { url 'https://guardian.github.com/maven/repo-releases' }
         maven { url 'https://maven.google.com' }
         jcenter()
         mavenCentral()
