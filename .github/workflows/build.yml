@@ -1,1 +1,79 @@
+name: Build
 
+on:
+  push:
+    branches:
+      - development
+      - 'claude/**'
+    # pushing a tv-v<version> tag publishes a release with the APKs
+    tags:
+      - 'tv-v*'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tv:
+    name: Android TV APKs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # before switching to Java 8, which sdkmanager doesn't run on
+      - name: Install SDK packages
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-29" "build-tools;28.0.3" > /dev/null
+
+      # Gradle 5.6 and the Android Gradle plugin 3.5 predate newer Java versions
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Set up signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.TV_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.TV_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.TV_KEY_PASSWORD }}
+        run: |
+          keystore="$RUNNER_TEMP/release.keystore"
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          else
+            echo "::warning::No TV_KEYSTORE_BASE64 secret, signing with a key made for this build only. Installing a later build signed with another key means uninstalling this one first."
+            KEY_ALIAS=popcorntime
+            KEY_PASSWORD=$(openssl rand -hex 16)
+            keytool -genkeypair -keystore "$keystore" -alias "$KEY_ALIAS" \
+              -storepass "$KEY_PASSWORD" -keypass "$KEY_PASSWORD" \
+              -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Popcorn Time"
+          fi
+          echo "::add-mask::$KEY_PASSWORD"
+          # read by the signing config in tv/build.gradle, which uses one password for the store and the key
+          echo "S_KEYSTORE=$keystore" >> "$GITHUB_ENV"
+          echo "S_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "S_KEYPASS=$KEY_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Build
+        env:
+          # becomes the version code, which has to go up for an update to install
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./gradlew --no-daemon --stacktrace :tv:assembleArmRelease :tv:assembleX86Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: popcorn-time-tv
+          path: tv/build/outputs/apk/*/release/*.apk
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/tv-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # the release notes are the message of the annotated tag
+          git fetch --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          git for-each-ref --format='%(contents)' "refs/tags/$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
+          gh release create "$GITHUB_REF_NAME" tv/build/outputs/apk/*/release/*.apk \
+            --title "Popcorn Time TV ${GITHUB_REF_NAME#tv-v}" \
+            --notes-file "$RUNNER_TEMP/notes.md"
