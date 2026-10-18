@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Butter.
+  ~
+  ~ Butter is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ Butter is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with Butter. If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+
+<resources>
+
+    <!-- Open link screen -->
+    <string name="open_link">Open link</string>
+    <string name="open_link_title">Open a magnet link</string>
+    <string name="open_link_description">Send a link from your phone or computer: connect it to the same network as this TV, then scan the code or open the address below in its browser.\n\nMagnet links and .torrent files opened in a browser on this TV also play here.</string>
+    <string name="open_link_description_offline">Connect this TV to a network to send links from your phone or computer.\n\nMagnet links and .torrent files opened in a browser on this TV also play here.</string>
+    <string name="open_link_no_network">No network connection</string>
+    <string name="type_link">Type or paste a link</string>
+    <string name="type_link_description">Magnet link, .torrent link or info hash. Remote apps on your phone, such as Google TV, can paste into it.</string>
+    <string name="paste_link">Paste from clipboard</string>
+    <string name="paste_link_description">A link you copied on this TV</string>
+    <string name="clipboard_no_link">The clipboard has no magnet link</string>
+    <string name="open_torrent_file">Open a .torrent file</string>
+    <plurals name="torrent_files_in_downloads">
+        <item quantity="one">%d in Downloads</item>
+        <item quantity="other">%d in Downloads</item>
+    </plurals>
+    <string name="no_torrent_files">No .torrent files in Downloads</string>
+    <string name="browse_files">Browse files…</string>
+    <string name="invalid_link">That doesn\'t look like a magnet link</string>
+    <string name="torrent_file_error">Unable to open the .torrent file</string>
+
+    <!-- Page served to phones and computers, see RemoteLinkServer -->
+    <string name="remote_page_title">Send to %1$s</string>
+    <string name="remote_page_intro">Paste a magnet link or choose a .torrent file. It starts playing on your TV right away.</string>
+    <string name="remote_page_link_label">Magnet link</string>
+    <string name="remote_page_link_hint">magnet:?xt=urn:btih:…</string>
+    <string name="remote_page_send">Play on TV</string>
+    <string name="remote_page_or">or</string>
+    <string name="remote_page_choose_file">Choose a .torrent file</string>
+    <string name="remote_page_sending">Sending…</string>
+    <string name="remote_sent">Sent! It\'s starting on your TV.</string>
+    <string name="remote_no_link">Paste a magnet link or a link to a .torrent file, or choose a .torrent file.</string>
+    <string name="remote_not_torrent">That file isn\'t a .torrent file.</string>
+    <string name="remote_too_large">That file is too large to be a .torrent file.</string>
+    <string name="remote_failed">Something went wrong, please try again.</string>
+
+</resources>

@@ -214,7 +214,8 @@ public abstract class BaseVideoPlayerFragment
             Timber.d("Using default subtitle: " + mCurrentSubsLang);
         }
 
-        if (!streamInfo.getSubtitleLanguage().equals(SubsProvider.SUBTITLE_LANGUAGE_NONE)) {
+        // a magnet link or .torrent file opened directly has no media to look subtitles up for
+        if (mMedia != null && !streamInfo.getSubtitleLanguage().equals(SubsProvider.SUBTITLE_LANGUAGE_NONE)) {
             Timber.d("Download default subtitle");
             mCurrentSubsLang = streamInfo.getSubtitleLanguage();
             loadOrDownloadSubtitle();

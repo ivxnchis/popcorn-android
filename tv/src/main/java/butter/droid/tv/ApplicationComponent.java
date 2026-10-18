@@ -22,6 +22,7 @@ import javax.inject.Singleton;
 import butter.droid.tv.activities.TVMainActivity;
 import butter.droid.tv.activities.TVMediaDetailActivity;
 import butter.droid.tv.activities.TVMediaGridActivity;
+import butter.droid.tv.activities.TVOpenLinkActivity;
 import butter.droid.tv.activities.TVPreferencesActivity;
 import butter.droid.tv.activities.TVSearchActivity;
 import butter.droid.tv.activities.TVStreamLoadingActivity;
@@ -56,6 +57,8 @@ public interface ApplicationComponent {
     void inject(TVMediaDetailActivity activity);
 
     void inject(TVMediaGridActivity activity);
+
+    void inject(TVOpenLinkActivity activity);
 
     void inject(TVPreferencesActivity activity);
 

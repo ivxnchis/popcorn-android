@@ -21,6 +21,7 @@
 
     <item name="more_player_tests" type="id" />
     <item name="more_item_settings" type="id" />
+    <item name="more_item_open_link" type="id" />
 
     <item name="control_scale" type="id" />
 
@@ -59,4 +60,9 @@
 
     <item name="action_update_now" type="id" />
     <item name="action_update_later" type="id" />
+
+    <item name="action_type_link" type="id" />
+    <item name="action_paste_link" type="id" />
+    <item name="action_torrent_files" type="id" />
+    <item name="action_browse_files" type="id" />
 </resources>

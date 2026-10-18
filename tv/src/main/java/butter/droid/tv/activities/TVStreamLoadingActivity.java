@@ -19,6 +19,7 @@ package butter.droid.tv.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.core.app.ActivityCompat;
@@ -45,9 +46,14 @@ public class TVStreamLoadingActivity extends TVBaseActivity implements BaseStrea
 	private TVStreamLoadingFragment mFragment;
 
 	public static Intent startActivity(Activity activity, StreamInfo info) {
-		Intent i = new Intent(activity, TVStreamLoadingActivity.class);
-		i.putExtra(EXTRA_STREAM_INFO, info);
+		Intent i = newIntent(activity, info);
 		activity.startActivity(i);
+		return i;
+	}
+
+	public static Intent newIntent(Context context, StreamInfo info) {
+		Intent i = new Intent(context, TVStreamLoadingActivity.class);
+		i.putExtra(EXTRA_STREAM_INFO, info);
 		return i;
 	}
 

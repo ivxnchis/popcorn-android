@@ -19,13 +19,30 @@ package butter.droid.tv;
 
 import android.content.Context;
 
+import com.sjl.foreground.Foreground;
+
 import butter.droid.base.BaseApplicationModule;
 import butter.droid.base.ButterApplication;
 import butter.droid.base.utils.VersionUtils;
+import butter.droid.tv.remote.RemoteLinkManager;
 
 public class TVButterApplication extends ButterApplication {
 
     private ApplicationComponent component;
+    private RemoteLinkManager remoteLinkManager;
+
+    // Foreground only keeps a weak reference to its listeners
+    private final Foreground.Listener foregroundListener = new Foreground.Listener() {
+        @Override
+        public void onBecameForeground() {
+            remoteLinkManager.start();
+        }
+
+        @Override
+        public void onBecameBackground() {
+            remoteLinkManager.stop();
+        }
+    };
 
     public static TVButterApplication getAppContext() {
         return (TVButterApplication) ButterApplication.getAppContext();
@@ -43,6 +60,10 @@ public class TVButterApplication extends ButterApplication {
                 .build();
         component.inject(this);
         super.onCreate();
+
+        // lets phones and computers on the network send links while the app is open
+        remoteLinkManager = new RemoteLinkManager(this);
+        Foreground.get(this).addListener(foregroundListener);
     }
 
     @Override
@@ -54,5 +75,9 @@ public class TVButterApplication extends ButterApplication {
 
     public ApplicationComponent getComponent() {
         return component;
+    }
+
+    public RemoteLinkManager getRemoteLinkManager() {
+        return remoteLinkManager;
     }
 }
